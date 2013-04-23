@@ -75,17 +75,19 @@ trait MyService extends HttpService {
       } ~ 
       path("wordcount") {
          respondWithMediaType(`application/json`){           
-            val start = System.currentTimeMillis()
-            val latch = new CountDownLatch(wordList.size)
-            val master = actorRefFactory.actorOf(Props(new MasterActor(latch)))
-            for (line <- wordList){
-            	master ! line
-            }              
-        	latch.await()
-        	val end = System.currentTimeMillis()
-        	val future = (master ? Result).mapTo[HashMap[String, Int]]
-			val result = Await.result(future, timeout.duration)			
-      	    complete{result.toMap.toJson.prettyPrint}        	         	
+            complete {
+              val start = System.currentTimeMillis()
+              val latch = new CountDownLatch(wordList.size)
+              val master = actorRefFactory.actorOf(Props(new MasterActor(latch)))
+              for (line <- wordList){
+            	  master ! line
+              }              
+              latch.await()
+              val end = System.currentTimeMillis()
+              val future = (master ? Result).mapTo[HashMap[String, Int]]
+	      val result = Await.result(future, timeout.duration)			
+      	      result.toMap.toJson.prettyPrint
+      	    }        	         	
         }
       }
     }
